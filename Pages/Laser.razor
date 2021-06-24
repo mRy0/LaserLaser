@@ -1,0 +1,601 @@
+﻿@page "/laser"
+
+@using LaserWebServer.Data
+@inject OpenDMXService DMXService
+
+@inject SettingsService SettService
+
+
+<h1>Laser</h1>
+
+
+<Modal @ref="modal">
+    <Title>Preset Speichern</Title>
+    <Body>
+        <div class="form-group">
+            <label for="preset-name" class="col-form-label">Recipient:</label>
+            <input type="text" class="form-control" id="preset-name" @bind-value="_newPresetName">
+          </div>
+    </Body>
+    <Footer>
+        <button type="button" class="btn btn-secondary" @onclick="modal.Close">Schliessen</button>
+        <button type="button" class="btn btn-primary" @onclick="SavePreset">Speichern</button>
+    </Footer>
+</Modal>
+
+
+    <div class="form-row">    
+
+      <div class="col-lg-2 col-sm-4 mb-3">
+        <label for="dmxChannel">Channel</label>
+        <input id="dmxChannel" class="form-control" @bind-value="@_dmxChannel" type="number" max="502" min="1" />
+      </div>
+      
+      <div class="col-xl-2 col-lg-3 col-md-4 mb-1">
+          <label for="laser_mode">Modus</label>
+           <select class="form-control" id="laser_mode" @bind="Mode">
+                   <option value="0">Aus</option>
+                   <option value="64">Auto</option>
+                   <option value="128">Sound</option>
+                   <option value="192">DMX</option>
+           </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+     <div class="col-md-2 mb-1">
+          <label for="laser_color">Farbe</label>
+           <select class="form-control" id="laser_color" @bind="Color">
+        <option value="0">Bunt</option>
+        <option value="64">Rot</option>
+        <option value="96">Grün</option>
+        <option value="128">Blau</option>
+        <option value="160">Gelb</option>
+        <option value="192">Pink</option>
+        <option value="224">Cyan</option>
+</select>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-5 mb-1">
+          <label for="laser_pattern">Pattern</label>
+           <select class="form-control" id="laser_pattern" @bind="Pattern">
+                <option value="0">Kreis</option>
+                <option value="8">Kreis mit Schnörkelis</option>
+                <option value="16">Dreieck</option>
+                <option value="24">Viereck</option>
+                <option value="32">Viereck mit Schnörkelis</option>
+                <option value="40">Viereck gross und klein</option>
+                <option value="48">Sanitäter</option>
+                <option value="56">Stern</option>
+                <option value="64">Tetris</option>
+                <option value="72">Fliege</option>
+                <option value="80">Spriale</option>
+                <option value="88">Halbkreis 2x</option>
+                <option value="96">Bernulli</option>
+                <option value="104">Viertelkreis</option>
+                <option value="112">nanana BATMAN!!</option>
+                <option value="120">Berge</option>
+                <option value="128">Zelt</option>
+                <option value="136">WWE</option>
+                <option value="144">Leiter</option>
+                <option value="152">Linie</option>
+                <option value="160">kleine Linien x3</option>
+                <option value="168">Linie x3</option>
+                <option value="176">Linie oben unten</option>
+                <option value="184">Kreuz</option>
+                <option value="192">Linie oben rechts / unten links</option>
+                <option value="200">Raute mit Löchern</option>
+                <option value="208">zwei kleine Rechtecke</option>
+                <option value="216">vier kleine Rechtecke</option>
+                <option value="224">kleines Rechteck</option>
+                <option value="232">Strichellinie</option>
+                <option value="240">Halber Strichelkreis</option>
+                <option value="248">Sterne</option>
+        </select>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 col-sm-12 mb-1">    
+            <div class="form-group">         
+            <label for="laser_zoom_manual" class="form-label">Zoom manuell</label>
+            <input type="range" class="form-control-range" id="laser_zoom_manual" @bind-value:event="oninput" @bind-value="ZoomManual" min="0" max="127">
+            </div>
+        </div>        
+        <div class="col-md-6 col-sm-12 mb-1">     
+            <div class="form-group">
+                 <label for="laser_zoom_auto" class="form-label">Zoom automatisch</label>
+                <input type="range" class="form-control-range" id="laser_zoom_auto" @bind-value:event="oninput" @bind-value="ZoomAuto" min="128" max="255">
+            </div>  
+        </div>        
+    </div>
+
+    
+    <div class="row">
+        <div class="col-md-6 col-sm-12 mb-1">    
+            <div class="form-group">         
+            <label for="laser_x_rolling_manual" class="form-label">X Achse Rollen manuell</label>
+            <input type="range" class="form-control-range" id="laser_x_rolling_manual" @bind-value:event="oninput" @bind-value="XRollingManual" min="0" max="127">
+            </div>
+        </div>        
+        <div class="col-md-6 col-sm-12 mb-1">     
+            <div class="form-group">
+                 <label for="laser_x_rolling_auto" class="form-label">X Achse Rollen automatisch</label>
+                <input type="range" class="form-control-range" id="laser_x_rolling_auto" @bind-value:event="oninput" @bind-value="XRollingAuto" min="128" max="255">
+            </div>  
+        </div>        
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 col-sm-12 mb-1">    
+            <div class="form-group">         
+            <label for="laser_y_rolling_manual" class="form-label">Y Achse Rollen manuell</label>
+            <input type="range" class="form-control-range" id="laser_y_rolling_manual" @bind-value:event="oninput" @bind-value="YRollingManual" min="0" max="127">
+            </div>
+        </div>        
+        <div class="col-md-6 col-sm-12 mb-1">     
+            <div class="form-group">
+                 <label for="laser_y_rolling_auto" class="form-label">Y Achse Rollen automatisch</label>
+                <input type="range" class="form-control-range" id="laser_y_rolling_auto" @bind-value:event="oninput" @bind-value="YRollingAuto" min="128" max="255">
+            </div>  
+        </div>        
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 col-sm-12 mb-1">    
+            <div class="form-group">         
+            <label for="laser_z_rolling_manual" class="form-label">Z Achse Rollen manuell</label>
+            <input type="range" class="form-control-range" id="laser_z_rolling_manual" @bind-value:event="oninput" @bind-value="ZRollingManual" min="0" max="127">
+            </div>
+        </div>        
+        <div class="col-md-6 col-sm-12 mb-1">     
+            <div class="form-group">
+                 <label for="laser_z_rolling_auto" class="form-label">Z Achse Rollen automatisch</label>
+                <input type="range" class="form-control-range" id="laser_z_rolling_auto" @bind-value:event="oninput" @bind-value="ZRollingAuto" min="128" max="255">
+            </div>  
+        </div>        
+    </div>
+
+    
+    <div class="row">
+        <div class="col-md-6 col-sm-12 mb-1">    
+            <div class="form-group">         
+            <label for="laser_x_moving_manual" class="form-label">X Bewegung manuell</label>
+            <input type="range" class="form-control-range" id="laser_x_moving_manual" @bind-value:event="oninput" @bind-value="XMovingManual" min="0" max="127">
+            </div>
+        </div>        
+        <div class="col-md-6 col-sm-12 mb-1">     
+            <div class="form-group">
+                 <label for="laser_x_moving_auto" class="form-label">X Bewegung automatisch</label>
+                <input type="range" class="form-control-range" id="laser_x_moving_auto" @bind-value:event="oninput" @bind-value="XMovingAuto" min="128" max="255">
+            </div>  
+        </div>        
+    </div>
+
+
+    
+    <div class="row">
+        <div class="col-md-6 col-sm-12 mb-1">    
+            <div class="form-group">         
+            <label for="laser_y_moving_manual" class="form-label">Y Bewegung manuell</label>
+            <input type="range" class="form-control-range" id="laser_y_moving_auto" @bind-value:event="oninput" @bind-value="YMovingManual" min="0" max="127">
+            </div>
+        </div>        
+        <div class="col-md-6 col-sm-12 mb-1">     
+            <div class="form-group">
+                 <label for="laser_y_moving_auto" class="form-label">Y Bewegung automatisch</label>
+                <input type="range" class="form-control-range" id="laser_y_moving_auto" @bind-value:event="oninput" @bind-value="YMovingAuto" min="128" max="255">
+            </div>  
+        </div>        
+    </div>
+    
+    <div class="row">
+        <div class="col mb-1">   
+        <button class="btn btn-warning" @onclick="Reset">Reset</button>
+        <button type="button" class="btn btn-primary" @onclick="ShowPresetModal">Als Preset speichern</button>
+            </div>
+    </div>
+
+
+    
+    <div class="form-group row">    
+              
+      <label class="col-md-2 col-lg-1 col-form-label" for="laser_mode">Preset</label>
+
+          
+      <div class="col-md-4 mb-1">
+           <select class="form-control" id="laser_mode" @bind="_selectedPresetId">
+                <option value=""> </option>
+               @if(_presets != null)
+                {
+                @foreach(var preset in _presets)
+                {
+                    <option value="@preset.Id">@preset.Name</option>
+                }
+            }
+           </select>
+        </div>
+      <div class="col">
+        <button type="button" class="btn btn-success" @onclick="LoadPreset">Laden</button>
+      </div>
+    </div>
+
+
+
+
+
+@code {
+    private uint _dmxChannel = 1;
+
+    private string _newPresetName;
+    private Modal modal { get; set; }
+
+    private byte _mode;
+    private byte _color;
+    private byte _pattern;
+
+    private byte _zoom;
+
+    private byte _xrolling;
+    private byte _yrolling;
+    private byte _zrolling;
+
+    private byte _xmoving;
+    private byte _ymoving;
+
+    private IEnumerable< Models.Preset> _presets =null;
+    private string _selectedPresetId;
+
+
+
+    #region settergetter
+    private byte Mode
+    {
+        set
+        {
+            _mode = value;
+            SetDMX(1, _mode);
+        }
+        get
+        {
+            return _mode;
+        }
+    }
+    
+    private byte Color
+    {
+        set
+        {
+            _color = value;
+            SetDMX(2, _color);
+        }
+        get
+        {
+            return _color;
+        }
+    }
+
+    private byte Pattern
+    {
+        set
+        {
+            _pattern = value;
+            SetDMX(3, _pattern);
+        }
+        get
+        {
+            return _pattern;
+        }
+    }
+
+    private byte ZoomManual
+    {
+        set
+        {            
+            if(_zoom != value)
+            {
+                _zoom = value;
+                SetDMX(4, _zoom);       
+            }
+        }
+        get
+        {
+            if (_zoom > 127) return 0;
+            else return _zoom;
+        }
+    }
+    private byte ZoomAuto
+    {
+        set
+        {     
+            if(_zoom != value)
+            {
+                _zoom = value;
+                SetDMX(4, _zoom);       
+            }
+        }
+        get
+        {
+            if (_zoom < 128) return 127;
+            else return _zoom;
+        }
+    }
+     
+    private byte XRollingManual
+    {
+        set
+        {            
+            if(_xrolling != value)
+            {
+                _xrolling = value;
+                SetDMX(5, _xrolling);       
+            }
+        }
+        get
+        {
+            if (_xrolling > 127) return 0;
+            else return _xrolling;
+        }
+    }
+    private byte XRollingAuto
+    {
+        set
+        {     
+            if(_xrolling != value)
+            {
+                _xrolling = value;
+                SetDMX(5, _xrolling);       
+            }
+        }
+        get
+        {
+            if (_xrolling < 128) return 127;
+            else return _xrolling;
+        }
+    }
+     
+     
+    private byte YRollingManual
+    {
+        set
+        {            
+            if(_yrolling != value)
+            {
+                _yrolling = value;
+                SetDMX(6, _yrolling);       
+            }
+        }
+        get
+        {
+            if (_yrolling > 127) return 0;
+            else return _yrolling;
+        }
+    }
+    private byte YRollingAuto
+    {
+        set
+        {     
+            if(_yrolling != value)
+            {
+                _yrolling = value;
+                SetDMX(6, _yrolling);       
+            }
+        }
+        get
+        {
+            if (_yrolling < 128) return 127;
+            else return _yrolling;
+        }
+    }
+     
+     
+    private byte ZRollingManual
+    {
+        set
+        {            
+            if(_zrolling != value)
+            {
+                _zrolling = value;
+                SetDMX(7, _zrolling);       
+            }
+        }
+        get
+        {
+            if (_zrolling > 127) return 0;
+            else return _zrolling;
+        }
+    }
+    private byte ZRollingAuto
+    {
+        set
+        {     
+            if(_zrolling != value)
+            {
+                _zrolling = value;
+                SetDMX(7, _zrolling);       
+            }
+        }
+        get
+        {
+            if (_zrolling < 128) return 127;
+            else return _zrolling;
+        }
+    }
+
+     
+    private byte XMovingManual
+    {
+        set
+        {            
+            if(_xmoving != value)
+            {
+                _xmoving = value;
+                SetDMX(8, _xmoving);       
+            }
+        }
+        get
+        {
+            if (_xmoving > 127) return 0;
+            else return _xmoving;
+        }
+    }
+    private byte XMovingAuto
+    {
+        set
+        {     
+            if(_xmoving != value)
+            {
+                _xmoving = value;
+                SetDMX(8, _xmoving);       
+            }
+        }
+        get
+        {
+            if (_xmoving < 128) return 127;
+            else return _xmoving;
+        }
+    }
+
+    private byte YMovingManual
+    {
+        set
+        {            
+            if(_ymoving != value)
+            {
+                _ymoving = value;
+                SetDMX(9, _ymoving);       
+            }
+        }
+        get
+        {
+            if (_ymoving > 127) return 0;
+            else return _ymoving;
+        }
+    }
+    private byte YMovingAuto
+    {
+        set
+        {     
+            if(_ymoving != value)
+            {
+                _ymoving = value;
+                SetDMX(9, _ymoving);       
+            }
+        }
+        get
+        {
+            if (_ymoving < 128) return 127;
+            else return _ymoving;
+        }
+    }
+    #endregion
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _mode = await DMXService.GetChannelValue(_dmxChannel + 0);
+        _color = await DMXService.GetChannelValue(_dmxChannel + 1);
+        _pattern = await DMXService.GetChannelValue(_dmxChannel + 2);
+        _zoom = await DMXService.GetChannelValue(_dmxChannel + 3);
+        _xrolling = await DMXService.GetChannelValue(_dmxChannel + 4);
+        _yrolling = await DMXService.GetChannelValue(_dmxChannel + 5);
+        _zrolling = await DMXService.GetChannelValue(_dmxChannel + 6);
+        _xmoving= await DMXService.GetChannelValue(_dmxChannel + 7);
+        _ymoving = await DMXService.GetChannelValue(_dmxChannel + 8);
+
+        await UpdatePresets();     
+    }
+
+    private async Task SetDMX(byte channel, byte value)
+    {
+        await DMXService.SetChannelValue(_dmxChannel + channel - 1, value);
+    }
+
+    
+    private async Task Reset()
+    {
+        _mode = 0;
+        _color = 0;
+        _pattern = 0;
+        _zoom = 0;
+        _xrolling = 0;
+        _yrolling = 0;
+        _zrolling = 0;
+        _xmoving = 0;
+        _ymoving = 0;
+        
+        await DMXService.SetChannelValue(_dmxChannel , 0);
+        await DMXService.SetChannelValue(_dmxChannel + 1, 0);
+        await DMXService.SetChannelValue(_dmxChannel + 2, 0);
+        await DMXService.SetChannelValue(_dmxChannel + 3, 0);
+        await DMXService.SetChannelValue(_dmxChannel + 4, 0);
+        await DMXService.SetChannelValue(_dmxChannel + 5, 0);
+        await DMXService.SetChannelValue(_dmxChannel + 6, 0);
+        await DMXService.SetChannelValue(_dmxChannel + 7, 0);
+        await DMXService.SetChannelValue(_dmxChannel + 8, 0);
+
+    }
+
+    private async Task LoadPreset()
+    {
+        try{
+            
+            if (string.IsNullOrWhiteSpace(_selectedPresetId)) return;
+
+            var preset = _presets.FirstOrDefault(pres => pres.Id.Equals(_selectedPresetId));
+            if(preset == null) return;
+
+            _mode = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 0)).Value;
+            _color = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 1)).Value;
+            _pattern = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 2)).Value;
+            _zoom = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 3)).Value;
+            _xrolling = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 4)).Value;
+            _yrolling = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 5)).Value;
+            _zrolling = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 6)).Value;
+            _xmoving = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 7)).Value;
+            _ymoving = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 8)).Value;
+        }
+        catch
+        {
+            
+        }
+
+    }
+
+    private async Task UpdatePresets(){
+        _presets = await SettService.GetPresets();
+    }
+
+    private void ShowPresetModal()
+    {
+        modal.Open();
+    }
+
+    private async Task SavePreset()
+    {
+        var newPres = new Models.Preset()
+        {
+            Name = _newPresetName,
+            Id = Guid.NewGuid(),
+            Settings = new List<Models.Preset.PresetSetting>(
+            new[] {
+                new Models.Preset.PresetSetting() { DMXAddress = _dmxChannel + 0, Value = _mode },
+                new Models.Preset.PresetSetting() { DMXAddress = _dmxChannel + 1, Value = _color },
+                new Models.Preset.PresetSetting() { DMXAddress = _dmxChannel + 2, Value = _pattern },
+                new Models.Preset.PresetSetting() { DMXAddress = _dmxChannel + 3, Value = _zoom },
+                new Models.Preset.PresetSetting() { DMXAddress = _dmxChannel + 4, Value = _xrolling },
+                new Models.Preset.PresetSetting() { DMXAddress = _dmxChannel + 5, Value = _yrolling },
+                new Models.Preset.PresetSetting() { DMXAddress = _dmxChannel + 6, Value = _zrolling},
+                new Models.Preset.PresetSetting() { DMXAddress = _dmxChannel + 7, Value = _xmoving },
+                new Models.Preset.PresetSetting() { DMXAddress = _dmxChannel + 8, Value = _ymoving }
+            })
+        };
+
+        await SettService.AddPreset(newPres);
+        _newPresetName = "";
+        modal.Close();
+
+        await UpdatePresets();
+    }
+}

@@ -1,0 +1,42 @@
+﻿@page "/dmxtest"
+
+@using LaserWebServer.Data
+@inject OpenDMXService DMXService
+
+
+<h1>DMX Test</h1>
+
+Channel: <input @bind-value="@DMXChannel" type="number" max="512" min="1" />
+Wert: <input @bind-value="@_dmxValue" type="number" max="255" min="0" /> <button class="btn btn-primary" @onclick="SetValue">Schreiben</button>
+
+
+@code {
+    private uint _dmxChannel = 1;
+    private byte _dmxValue = 0;
+    
+    private uint DMXChannel
+    {
+        set
+        {
+            _dmxChannel = value;
+            FetchValue();
+        }
+        get
+        {
+            return _dmxChannel;
+        }
+    }
+
+    private async Task FetchValue()
+    {
+        _dmxValue = await DMXService.GetChannelValue(_dmxChannel);
+    }
+    
+    private async Task SetValue()
+    {
+        await DMXService.SetChannelValue(_dmxChannel, _dmxValue);
+    }
+
+
+
+}

@@ -1,0 +1,63 @@
+﻿@page "/device"
+
+@using LaserWebServer.Data
+@inject OpenDMXService DMXService
+
+<h1>Gerät</h1>
+
+@if(_currentDevice == null)
+{
+    <p>Aktuelles Gerät: warte...</p>
+}
+else
+{
+    <p>Aktuelles Gerät: @_currentDevice</p>
+}
+
+<h3>Geräte: </h3>
+<select @bind="_selectedDevice">
+    @if(_devices == null)
+    {
+        <option >warte...</option>
+    }
+    else
+    {
+        <option value=""> </option>
+        @foreach(var device in _devices){
+            <option value="@device.LocId">@device.Description</option>
+        }
+    }
+</select>
+
+
+<button class="btn btn-primary" @onclick="Connect">Verbinden</button>
+<button class="btn btn-primary" @onclick="Disconnect">Trennen</button>
+
+
+
+@code {
+    private string _currentDevice;
+    private Models.FTD2Device[] _devices;
+
+    private string _selectedDevice;
+
+    protected override async  Task OnInitializedAsync()
+    {
+        _currentDevice = await DMXService.GetConnectedDevice();
+        _devices = await DMXService.GetDevicesAsync();
+    }
+
+
+    private async Task Connect()
+    {
+        var locId = uint.Parse(_selectedDevice);
+        await DMXService.OpenDeviceAsync(locId);
+        _currentDevice = await DMXService.GetConnectedDevice();
+    }
+    private async Task Disconnect()
+    {
+        await DMXService.CloseDeviceAsync();
+        _currentDevice = await DMXService.GetConnectedDevice();
+    }
+}
+

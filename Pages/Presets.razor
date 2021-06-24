@@ -1,0 +1,40 @@
+﻿@page "/presets"
+
+@using BlazorTable
+@using LaserWebServer.Data
+@inject SettingsService SettService
+
+<h1>Presets</h1>
+
+
+<Table TableItem="Models.Preset" Items="_presets" PageSize="50">
+    <Column TableItem="Models.Preset" Title="Id" Field="@(x => x.Id)" Sortable="true" Filterable="true" Width="10%" />
+    <Column TableItem="Models.Preset" Title="Name" Field="@(x => x.Name)" Sortable="true" Filterable="true" Width="20%" />
+    <Column TableItem="Models.Preset" Title="" Field="@(x => x.Id)" Sortable="true" Width="10%">
+        <Template>
+        <button type="button" class="btn btn-error" @onclick="() => DeletePreset(context)">Löschen</button>
+        </Template>
+    </Column>
+    <Pager ShowPageNumber="true" ShowTotalCount="true" />
+</Table>
+
+
+@code {
+    private IEnumerable<Models.Preset> _presets;
+
+
+
+    protected override async  Task OnInitializedAsync()
+    {
+        _presets = await SettService.GetPresets();    
+    }
+
+    private async Task DeletePreset(Models.Preset preset)
+    {
+        await SettService.RemovePreset(preset);
+        _presets = await SettService.GetPresets();    
+    }
+
+    
+}
+
