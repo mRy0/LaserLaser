@@ -13,7 +13,7 @@
     <Title>Preset Speichern</Title>
     <Body>
         <div class="form-group">
-            <label for="preset-name" class="col-form-label">Recipient:</label>
+            <label for="preset-name" class="col-form-label">Name:</label>
             <input type="text" class="form-control" id="preset-name" @bind-value="_newPresetName">
           </div>
     </Body>
@@ -260,7 +260,7 @@
             return _mode;
         }
     }
-    
+
     private byte Color
     {
         set
@@ -290,11 +290,11 @@
     private byte ZoomManual
     {
         set
-        {            
+        {
             if(_zoom != value)
             {
                 _zoom = value;
-                SetDMX(4, _zoom);       
+                SetDMX(4, _zoom);
             }
         }
         get
@@ -306,11 +306,11 @@
     private byte ZoomAuto
     {
         set
-        {     
+        {
             if(_zoom != value)
             {
                 _zoom = value;
-                SetDMX(4, _zoom);       
+                SetDMX(4, _zoom);
             }
         }
         get
@@ -319,15 +319,15 @@
             else return _zoom;
         }
     }
-     
+
     private byte XRollingManual
     {
         set
-        {            
+        {
             if(_xrolling != value)
             {
                 _xrolling = value;
-                SetDMX(5, _xrolling);       
+                SetDMX(5, _xrolling);
             }
         }
         get
@@ -339,11 +339,11 @@
     private byte XRollingAuto
     {
         set
-        {     
+        {
             if(_xrolling != value)
             {
                 _xrolling = value;
-                SetDMX(5, _xrolling);       
+                SetDMX(5, _xrolling);
             }
         }
         get
@@ -352,16 +352,16 @@
             else return _xrolling;
         }
     }
-     
-     
+
+
     private byte YRollingManual
     {
         set
-        {            
+        {
             if(_yrolling != value)
             {
                 _yrolling = value;
-                SetDMX(6, _yrolling);       
+                SetDMX(6, _yrolling);
             }
         }
         get
@@ -373,11 +373,11 @@
     private byte YRollingAuto
     {
         set
-        {     
+        {
             if(_yrolling != value)
             {
                 _yrolling = value;
-                SetDMX(6, _yrolling);       
+                SetDMX(6, _yrolling);
             }
         }
         get
@@ -386,16 +386,16 @@
             else return _yrolling;
         }
     }
-     
-     
+
+
     private byte ZRollingManual
     {
         set
-        {            
+        {
             if(_zrolling != value)
             {
                 _zrolling = value;
-                SetDMX(7, _zrolling);       
+                SetDMX(7, _zrolling);
             }
         }
         get
@@ -407,11 +407,11 @@
     private byte ZRollingAuto
     {
         set
-        {     
+        {
             if(_zrolling != value)
             {
                 _zrolling = value;
-                SetDMX(7, _zrolling);       
+                SetDMX(7, _zrolling);
             }
         }
         get
@@ -421,15 +421,15 @@
         }
     }
 
-     
+
     private byte XMovingManual
     {
         set
-        {            
+        {
             if(_xmoving != value)
             {
                 _xmoving = value;
-                SetDMX(8, _xmoving);       
+                SetDMX(8, _xmoving);
             }
         }
         get
@@ -441,11 +441,11 @@
     private byte XMovingAuto
     {
         set
-        {     
+        {
             if(_xmoving != value)
             {
                 _xmoving = value;
-                SetDMX(8, _xmoving);       
+                SetDMX(8, _xmoving);
             }
         }
         get
@@ -458,11 +458,11 @@
     private byte YMovingManual
     {
         set
-        {            
+        {
             if(_ymoving != value)
             {
                 _ymoving = value;
-                SetDMX(9, _ymoving);       
+                SetDMX(9, _ymoving);
             }
         }
         get
@@ -474,11 +474,11 @@
     private byte YMovingAuto
     {
         set
-        {     
+        {
             if(_ymoving != value)
             {
                 _ymoving = value;
-                SetDMX(9, _ymoving);       
+                SetDMX(9, _ymoving);
             }
         }
         get
@@ -504,7 +504,7 @@
         _xmoving= await DMXService.GetChannelValue(_dmxChannel + 7);
         _ymoving = await DMXService.GetChannelValue(_dmxChannel + 8);
 
-        await UpdatePresets();     
+        await UpdatePresets();
     }
 
     private async Task SetDMX(byte channel, byte value)
@@ -512,7 +512,7 @@
         await DMXService.SetChannelValue(_dmxChannel + channel - 1, value);
     }
 
-    
+
     private async Task Reset()
     {
         _mode = 0;
@@ -524,7 +524,7 @@
         _zrolling = 0;
         _xmoving = 0;
         _ymoving = 0;
-        
+
         await DMXService.SetChannelValue(_dmxChannel , 0);
         await DMXService.SetChannelValue(_dmxChannel + 1, 0);
         await DMXService.SetChannelValue(_dmxChannel + 2, 0);
@@ -540,10 +540,10 @@
     private async Task LoadPreset()
     {
         try{
-            
+
             if (string.IsNullOrWhiteSpace(_selectedPresetId)) return;
 
-            var preset = _presets.FirstOrDefault(pres => pres.Id.Equals(_selectedPresetId));
+            var preset = _presets.FirstOrDefault(pres => pres.Id.Equals(Guid.Parse( _selectedPresetId)));
             if(preset == null) return;
 
             _mode = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 0)).Value;
@@ -555,10 +555,12 @@
             _zrolling = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 6)).Value;
             _xmoving = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 7)).Value;
             _ymoving = preset.Settings.First(sett => sett.DMXAddress.Equals(_dmxChannel + 8)).Value;
+
+            this.StateHasChanged();
         }
         catch
         {
-            
+
         }
 
     }

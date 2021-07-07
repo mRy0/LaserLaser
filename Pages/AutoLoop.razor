@@ -4,37 +4,141 @@
 @using LaserWebServer.Data
 @inject SettingsService SettService
 
-<h1>Presets</h1>
+
+<h1>Loops</h1>
 
 
-<Table TableItem="Models.Preset" Items="_presets" PageSize="50">
-    <Column TableItem="Models.Preset" Title="Id" Field="@(x => x.Id)" Sortable="true" Filterable="true" Width="10%" />
-    <Column TableItem="Models.Preset" Title="Name" Field="@(x => x.Name)" Sortable="true" Filterable="true" Width="20%" />
-    <Column TableItem="Models.Preset" Title="" Field="@(x => x.Id)" Sortable="true" Width="10%">
-        <Template>
-        <button type="button" class="btn btn-error" @onclick="() => DeletePreset(context)">Löschen</button>
-        </Template>
-    </Column>
-    <Pager ShowPageNumber="true" ShowTotalCount="true" />
-</Table>
+<div class="row">
 
 
-@code {
-    private ITable<Looper> Table;
+    <div class="col-md-2 my-auto">
+        <button type="button" class="btn btn-primary" @onclick="AddPreset">Hinzufügen</button>
+    </div>
+    <div class="col-md-2">
+        <label for="lpActive">Looping Aktiv</label>
+        <input @bind="LoopingActive" type="checkbox" class="form-control" id="lpActive">
+    </div>
 
-    public class Looper
-    {
-        public int Order  { set; get; }
-        public bool Active { set; get; }
-        public string Preset { set; get;}
-        public int Time { set;get;}         
+
+
+</div>
+
+
+<div class="container-fluid">
+    @foreach(var loop in SortedLoops)
+            {
+            <LoopSetting
+                         LoopItem="@loop"
+                         Presets="@_presets"
+                         OnRemoveClick="@RemovePreset"
+                         Updated="@PresetUpdated" 
+                         Start="StartLoop">
+                <ActiveText>
+                    @if (loop.Id.Equals(_activeLoopId))
+                {
+                        <span style="color: green; font-weight: bold">Aktiv noch @_activeLoopTimeRemain ms</span>
+                }
+                else
+                {
+                    <span>..</span>
+                }
+                </ActiveText>
+                </LoopSetting>
+
+            }
+
+</div>
+
+
+    @code {
+
+        public bool LoopingActive
+        {
+            set
+            {
+                _loopingActive = value;
+                SettService.SetLoopingActive(_loopingActive);
+            }
+            get
+            {
+                return _loopingActive;
+            }
+        }
+
+
+        private IEnumerable<Models.LoopObject> SortedLoops
+        {
+            get
+            {
+                return Loops.OrderBy(lp => lp.Order);
+            }
+        }
+        private List<Models.LoopObject> Loops = new List<Models.LoopObject>();
+
+        private Guid _activeLoopId = Guid.Empty;
+        private int _activeLoopTimeRemain = 0;
+
+        private IEnumerable<Models.ShortPreset> _presets = null;
+        private bool _loopingActive = false;
+
+        private System.Timers.Timer _updateTimer;
+
+
+        private async void AddPreset()
+        {
+            var newLoop = new Models.LoopObject()
+            {
+                Id = Guid.NewGuid(),
+                Active = false,
+                Order = Loops.Count == 0 ? 1 : Loops.OrderByDescending(lp => lp.Order).First().Order,
+                PresetId = Guid.Empty,
+                Time = 5000
+            };
+
+            Loops.Add(newLoop);
+            await SettService.AddUpdateLoop(newLoop);
+        }
+
+        private async void RemovePreset(Models.LoopObject loopObject)
+        {
+            Loops.Remove(Loops.First(lp => lp.Id.Equals(loopObject.Id)));
+            await SettService.RemoveLoop(loopObject);
+        }
+
+        protected override async Task OnInitializedAsync()
+        {
+            _presets = await SettService.GetShortPresets();
+            Loops = (await SettService.GetLoops()).ToList();
+            _loopingActive = await SettService.IsLoopingActive();
+            _updateTimer = new System.Timers.Timer();
+            _updateTimer.Interval = 250;
+            _updateTimer.Elapsed += TimerTick;
+            _updateTimer.Start();
+
+
+        }
+
+        private async void TimerTick(Object source, System.Timers.ElapsedEventArgs e)
+        {
+            var update = await SettService.GetLoopInfo();
+
+            _activeLoopId = update.CurrentId;
+            _activeLoopTimeRemain = update.TimeRemaing;
+
+            await this.InvokeAsync(() => this.StateHasChanged());
+        }
+
+
+        private async void PresetUpdated(Models.LoopObject loopObject)
+        {
+            await SettService.AddUpdateLoop(loopObject);
+            this.StateHasChanged();
+
+        }
+
+        private async void StartLoop(Models.LoopObject loopObject)
+        {
+            await SettService.ResetLooping(loopObject.Id);
+        }
+
     }
-
-    protected override async  Task OnInitializedAsync()
-    {
-            Table.ToggleEditMode();
-    }
-
-    
-}
-

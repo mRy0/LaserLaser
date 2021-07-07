@@ -12,7 +12,7 @@
     <Column TableItem="Models.Preset" Title="Name" Field="@(x => x.Name)" Sortable="true" Filterable="true" Width="20%" />
     <Column TableItem="Models.Preset" Title="" Field="@(x => x.Id)" Sortable="true" Width="10%">
         <Template>
-        <button type="button" class="btn btn-error" @onclick="() => DeletePreset(context)">Löschen</button>
+        <button type="button" class="btn btn-danger" @onclick="() => DeletePreset(context)">Löschen</button>
         </Template>
     </Column>
     <Pager ShowPageNumber="true" ShowTotalCount="true" />

@@ -1,0 +1,115 @@
+﻿<div class="row border margin" style="@_animationCss">
+    <div class="form-row">
+        <div class="col-md-1 my-auto">
+            <button @onclick="@(()=> OnRemoveClick.InvokeAsync(LoopItem))" class="btn btn-danger m-1">
+                <span class="oi oi-trash"></span>
+            </button>
+        </div>
+        <div class="col-md-1 my-auto">
+            <button @onclick="@(()=> Start.InvokeAsync(LoopItem))" class="btn btn-success m-1">
+                <span class="oi oi-media-play"></span>
+            </button>
+        </div>
+        <div class="form-group col-md-2">
+            <label for="@(LoopItem.Id + "position")">Positon</label>
+            <input @bind-value="Position" type="number" class="form-control" id="@(LoopItem.Id + "position")">
+        </div>
+        <div class="form-group col-md-1">
+            <label for="@(LoopItem.Id + "isActive")">Aktiv</label>
+            <input @bind="Active" type="checkbox" class="form-control" id="@(LoopItem.Id + "isActive")">
+        </div>
+        <div class="form-group col-md-5">
+            <label for="@(LoopItem.Id + "preset")">Preset</label>
+            <select id="@(LoopItem.Id + "preset")" class="form-control" @bind="PresetId">
+                @foreach (var pres in Presets)
+                {
+                    <option value="@pres.Id">@pres.Name</option>
+                }
+            </select>
+        </div>
+        <div class="form-group col-md-2">
+            <label for="@(LoopItem.Id + "time")">Zeit</label>
+            <input @bind-value="Time" type="number" class="form-control" id="@(LoopItem.Id + "time")">
+        </div>
+
+    </div>
+    <div class="col my-auto">
+        @ActiveText
+    </div>
+</div>
+
+
+@code {
+
+    private int Position
+    {
+        set
+        {
+            LoopItem.Order = value;
+            Updated.InvokeAsync(this.LoopItem);
+        }
+        get
+        {
+            return LoopItem.Order;
+        }
+    }
+
+    private int Time
+    {
+        set
+        {
+            LoopItem.Time = value;
+            Updated.InvokeAsync(this.LoopItem);
+        }
+        get
+        {
+            return LoopItem.Time;
+        }
+    }
+    private bool Active
+    {
+        set
+        {
+            LoopItem.Active = value;
+            Updated.InvokeAsync(this.LoopItem);
+        }
+        get
+        {
+            return LoopItem.Active;
+        }
+    }
+    private Guid PresetId
+    {
+        set
+        {
+            LoopItem.PresetId = value;
+            Updated.InvokeAsync(this.LoopItem);
+        }
+        get
+        {
+            return LoopItem.PresetId;
+        }
+    }
+
+
+    private string _animationCss { set; get; }
+
+    [Parameter]
+    public RenderFragment ActiveText { get; set; }
+
+    [Parameter]
+    public EventCallback<Models.LoopObject> Start { set; get; }
+
+    [Parameter]
+    public EventCallback<Models.LoopObject> OnRemoveClick { set; get; }
+
+    [Parameter]
+    public EventCallback<Models.LoopObject> Updated { set; get; }
+
+    [Parameter]
+    public Models.LoopObject LoopItem {set;get;}
+
+    [Parameter]
+    public IEnumerable<Models.ShortPreset> Presets { set; get; }
+
+}

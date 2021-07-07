@@ -31,6 +31,7 @@ namespace LaserWebServer
             services.AddServerSideBlazor();
             services.AddSingleton<Singletons.OpenDMX>();
             services.AddSingleton<Singletons.Settings>();
+            services.AddSingleton<Singletons.AutoLooping>();
             services.AddSingleton<Data.OpenDMXService>();
             services.AddSingleton<Data.SettingsService>();
             services.AddBlazorTable();
