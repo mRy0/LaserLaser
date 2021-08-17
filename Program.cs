@@ -20,7 +20,14 @@ namespace LaserWebServer
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseKestrel();
+
                     webBuilder.UseStartup<Startup>();
+
+                    webBuilder.ConfigureKestrel(serverOptions =>
+                    {
+                        serverOptions.ListenAnyIP(80);
+                    });
                 });
     }
 }

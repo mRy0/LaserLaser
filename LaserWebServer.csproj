@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <Product>LaserLaser</Product>
+    <UserSecretsId>9d0de461-635f-4d86-a79f-2e325567ef81</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
